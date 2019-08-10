@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>通讯录</title>
+    <style>
+        body {
+            background-color: chartreuse
+        }
+
+        #juzhong {
+
+            text-align: center;
+
+        }
+
+        #add-contact {
+            position: fixed;
+            right: 50px;
+            top: 50px;
+            height: 50px;
+            width: 50px;
+             text-align: center;/*水平居中 */
+            line-height: 0px;/*数值居中*/
+
+        }
+
+        #add-contact-wrap {
+            height: 250px;
+            width: 450px;
+            background-color: aqua;
+            margin: 0 auto;
+            border-radius: 50px;
+            box-shadow: 15px 15px 15px 0px;
+            position: fixed;
+            left: 100%;
+            transition: all 2.5s;
+        }
+
+        #add-contact-wrap.active {
+
+            transform: translateX(-100%)
+        }
+
+        #add-contact-wrap input {
+            height: 20px;
+            width: 95%;
+            padding: 2px 5px;
+            border: solid red 1px;
+            border-radius: 5px; /*倒角 */
+
+        }
+
+        #add-contact-wrap .button {
+            height: 25px;
+            width: 50px;
+            cursor: pointer;/*鼠标箭头变小手*/
+            margin-top: 20px;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <a href="http://www.baidu.com" target="_blank">
+        <h2>百度</h2>
+    </a>
+    <h2>通讯录练习</h2>
+    <h3>搜索 -
+        <input type="text" id="search">
+    </h3>
+
+    <button id="add-contact">
+        <h1>+</h1>
+    </button>
+    <div id="add-contact-wrap">
+        <h3 id="juzhong">请输入名字哦</h3>
+        <input type="text" name="name" id="name">
+        <h3 id="juzhong">请输入电话号码哦</h3>
+        <input type="text" name="name" id="phoneNumber">
+        <input type="submit" name="" class="button" value="取消" id="cancel">
+        <input type="submit" name="" class="button" value="确定" id="confirm">
+
+    </div>
+
+    <table>
+        <tbody id="tbody">
+            <tr>
+                <th>你的姓名</th>
+                <th>电话号码</th>
+                <th>拨号给你</th>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        var tableHead = document.createElement('tr')
+        var td_1 = document.createElement('td')
+        td_1.innerHTML = '姓名'
+        var td_2 = document.createElement('td')
+        td_2.innerHTML = "号码"
+        var td_3 = document.createElement('td')
+        td_3.innerHTML = '拨号'
+        tableHead.appendChild(td_1)
+        tableHead.appendChild(td_2)
+        tableHead.appendChild(td_3)
+
+        var tbody = document.getElementById('tbody')
+        var fillData = function (arr) {
+            tbody.innerHTML = ''
+            tbody.appendChild(tableHead)
+            arr.reverse()
+            for (var i = 0; i < arr.length; i++) {
+                var item = arr[i];
+                var name = item.name;
+                var phoneNumber = item.phoneNumber;
+                
+                var tr = document.createElement('tr')
+                var td_1 = document.createElement('td')
+                td_1.innerHTML = name;
+                var td_2 = document.createElement('td')
+                td_2.innerHTML = phoneNumber;
+                var td_3 = document.createElement('td')
+                var a = document.createElement('a')
+                a.herf = 'tel' + phoneNumber
+                a.innerHTML = '拨号给' + name;
+                
+                var button=document.createElement('button')
+                button.type='button'
+                button.innerHTML='删除'
+                button.setAttribute('data-_id',item._id)//添加指定的属性和值，格式为：setAttribute(name,value)
+
+
+                button.addEventListener('click',function(e){
+                    console.log(e)//e是一个对象，这个 参数是可有可无的，如果后面用得到的话需要有
+                    console.log(this.getAttribute('data-_id'))//打印获取到的设置的属性的值
+                    remove(this.getAttribute('data-_id'))
+                })
+
+               
+                
+
+
+
+                td_3.appendChild(a)
+                td_3.appendChild(button)
+                tr.appendChild(td_1)
+                tr.appendChild(td_2)
+                tr.appendChild(td_3)
+                
+                tbody.appendChild(tr)
+            }
+
+
+        }
+
+
+        var getAllContact = function () {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', 'http://127.0.0.1:3000/getallContact', true)
+            xhr.send()
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    
+                    var arr = JSON.parse(xhr.response)
+                    fillData(arr.data)
+                    // console.log(arr.data)
+                    // console.log(arr)
+                } 
+            }
+        }
+        getAllContact()
+
+
+
+        var addContactButton = document.getElementById('add-contact')
+        var addContactWrap = document.getElementById('add-contact-wrap')
+        var cancelbutton = document.getElementById('cancel')
+        var confirmbutton = document.getElementById('confirm')
+        var nameInput = document.getElementById('name')
+        var phoneNumberInput = document.getElementById('phoneNumber')
+
+
+        addContactButton.addEventListener('click', function () {
+            addContactWrap.className = 'active'
+        })
+        cancelbutton.addEventListener('click', function () {
+            addContactWrap.className = ''
+        })
+        confirmbutton.addEventListener('click', function () {
+            var name = nameInput.value
+            var phoneNumber = phoneNumberInput.value
+            addContact(name, phoneNumber)
+        })
+
+
+
+        var addContact = function (name, phoneNumber) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', 'http://127.0.0.1:3000/addContact?name=' + name + '&' + 'phoneNumber=' + phoneNumber, true)
+            xhr.send()
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr.response)
+                    var result = JSON.parse(xhr.response)
+                    // console.log(result.code)
+                    if (result.code == 1) {
+
+                        getAllContact()
+                        addContactWrap.className = ''
+                    }
+                    else {
+                        alert('添加失败，请检查网络后重试,出错啦，快')
+                    }
+                }
+            }
+        }
+
+
+
+
+        var searchInput = document.getElementById('search')
+        searchInput.addEventListener('input', function () {
+            // console.log(this.value)
+            search(this.value)
+        })
+        var search = function (key) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', 'http://127.0.0.1:3000/search?keyword=' + key, true)
+            xhr.send()
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    // console.log(xhr.response)
+                    var result = JSON.parse(xhr.response)
+                    if (result.code == 1) {
+                        console.log(result.data)
+                        fillData(result.data)
+                    }
+                }
+
+            }
+
+        }
+
+        // //删除联系人
+        // //http://skipper.fun/pb/removeContact?_id=[id]
+        
+        var remove = function (id) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', 'http://127.0.0.1:3000/removeContact?_id=' + id)
+            xhr.send()
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var result = JSON.parse(xhr.response)
+                    if (result.code == 1) {
+                        getAllContact()
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+    </script>
+
+
+
+</body>
+
+</html>
